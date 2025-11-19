@@ -161,6 +161,10 @@ class vehicleSQL():
             if 'modelname' in filters:
                 where_conditions.append(f"v.model_name = '{filters['modelname']}'")
 
+            # Filter by model year (numeric)
+            if 'model_year' in filters:
+                where_conditions.append(f"v.model_year = {filters['model_year']}")
+
             if 'fueltype' in filters:
                 where_conditions.append(f"v.fuel_type = '{filters['fueltype']}'")
 
@@ -271,4 +275,15 @@ class vehicleSQL():
         ORDER BY 
             parts_purchased DESC;
         '''
+        return sql
+
+    # Query returns the username, password, and role for the login information
+    def users(self):
+        sql = '''SELECT
+                    username,
+                    password,
+                    role
+                FROM
+                    csc206cars.users'''
+
         return sql

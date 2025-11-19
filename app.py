@@ -1,4 +1,5 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, render_template_string, request, redirect, url_for, flash, session
+from datetime import timedelta
 from database import MyDatabase
 from sql import cars
 from dotenv import load_dotenv
@@ -25,6 +26,7 @@ def sql_queries():
         'vehicle_years': vSQL.vehicle_years(),
         'fuel_types': vSQL.vehicle_fuel_type(),
         'colors': vSQL.colors(),
+        'users': vSQL.users(),
     }
 
     all_cars = {}
@@ -59,7 +61,7 @@ def home():
         pass
     try:
         if modelyear:
-            filters['model_year'] = modelyear
+            filters['model_year'] = int(modelyear)
     except ValueError:
         pass
     if fueltype:
@@ -73,16 +75,9 @@ def home():
     qSQL = cars.vehicleSQL()
 
     car_query = sql_queries()
-    output = db.query(qSQL.sellable_vehicles(filters if filter else None))
+    output = db.query(qSQL.sellable_vehicles(filters if filters else None))
 
     return render_template('display.html', cars=car_query, vehicles=output, include_filters=True, display_color=True)
-
-
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-
-    return render_template('login.html', cars={})
-
 
 @app.route('/sales')
 def sales():
@@ -111,5 +106,63 @@ def stats():
     return render_template('statistics.html', info=output)
 
 
+# Modified sessions.py code with render template instaed of returning a html snippet
+app.secret_key = 'BAD_SECRET_KEY' 
+
+# Defines length of permanent sessions
+app.permanent_session_lifetime = timedelta(minutes=1)
+
+# I commented this so I understand the logic of logging in
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+
+        # get the username and password inputted on the login form
+        username = request.form.get('username')
+        password = request.form.get('password')
+
+        # Query from sql_queries method
+        car_query = sql_queries()
+        users = car_query.get('users', [])
+
+        # Find matching user from DB results
+        user = next((u for u in users if u.get('username') == username), None)
+
+        # If the username and password have corrosponding matches in the database
+        if user and user.get('password') == password:
+
+            # Create a permanant session
+            session.permanent = False
+
+            # Store the role with the role key
+            session['role'] = user.get('role')
+
+            # Redirect to get_email
+            return redirect(url_for('get_email'))
+        
+        # If there is no match, 
+        else:
+            flash('Invalid username or password.')
+            return redirect(url_for('login'))
+
+    # Display the login form to begin with
+    return render_template('login.html', cars={})
+
+# If the role is obtained, display the correct template, otherwise redirect back to login
+@app.route('/')
+@app.route('/get_email')
+def get_email():
+    if "role" in session:
+        return render_template('seller.html', role=session['role'])
+    else:
+        return redirect(url_for('login'))
+
+# Remove the role from the session
+@app.route('/delete_session')
+def delete_session():
+    session.pop('role', default=None)
+    flash('You have been logged out.')
+    return redirect(url_for('login'))
+
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5001, debug=True)

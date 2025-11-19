@@ -7,25 +7,32 @@
 <div class="hero has-background-white is-fullwidth is-fullheight has-text-centered">
     <div class="column is-4 is-offset-4">
         <div class="mt-4">
-            <!-- Found information about this box on the bulma website and it looked like a login format -->
-            <form class="box">
+            <form class="box" method="POST" action="{{ url_for('login') }}">
 
                 <div class="field">
-                    <label class="label has-text-left">User</label>
+                    <label class="label has-text-left">Username</label>
                     <div class="control">
-                        <input class="input" type="email" placeholder="Admin, Buyer, Seller"/>
+                        <input class="input" type="text" placeholder="e.g., user01" name="username" required/>
                     </div>
                 </div>
 
                 <div class="field">
                     <label class="label has-text-left">Password</label>
                     <div class="control">
-                        <input class="input" type="password" placeholder="Password"/>
+                        <input class="input" type="password" placeholder="Password" name="password" required/>
                     </div>
                 </div>
 
-                <!-- Linking an a tag and formatting it to look like a button was easier than making a button work -->
-                <a class="button is-medium is-fullwidth" href="/home">Login</a>
+                <button type="submit" class="button is-medium is-fullwidth is-primary">Login</button>
+                
+                <!-- Display the invalid username message if you type the wrong information in the form-->
+                {% with messages = get_flashed_messages() %}
+                    {% if messages %}
+                        <div class="notification is-danger mt-3">
+                            {{ messages[0] }}
+                        </div>
+                    {% endif %}
+                {% endwith %}
 
             </form>
         </div>

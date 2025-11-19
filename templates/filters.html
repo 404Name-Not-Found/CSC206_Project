@@ -9,7 +9,7 @@
                 <div class="control">
                     <div class="select">
                         <select name="manufacturer_name" id="manufacturer_name">
-                            <option value="" disabled selected>Select a Manufacturer</option>
+                            <option value="" disabled selected>Manufacturer</option>
 
                             {% for car in cars.manufacturer %}
                             <option value="{{ car.manufacturerID }}">
@@ -28,7 +28,7 @@
                     <div class="select">
                         <select name="vehicle_type" id="vehicle_type">
 
-                            <option value="" disabled selected>Select a Type</option>
+                            <option value="" disabled selected>Vehicle Type</option>
 
                             {% for car in cars.vehicle_types %}
                             <option value="{{ car.vehicle_typeID }}">
@@ -45,7 +45,7 @@
                 <div class="control">
                     <div class="select">
                         <select name="model_year" id="model_year">
-                            <option value="" disabled selected>Select a Model</option>
+                            <option value="" disabled selected>Model Year</option>
 
                             {% for car in cars.vehicle_years %}
 
@@ -66,7 +66,7 @@
                     <div class="select">
                         <select name="fuel_type" id="fuel_type">
 
-                            <option value="" disabled selected>Select Fuel Type</option>
+                            <option value="" disabled selected>Fuel Type</option>
 
                             {% for car in cars.fuel_types %}
                             <option value="{{ car.fuel_type }}">
@@ -85,7 +85,7 @@
                     <div class="select">
                         <select name="color_selection" id="color_selection">
 
-                            <option value="" disabled selected>Select a Color</option>
+                            <option value="" disabled selected>Color</option>
 
                             {% for car in cars.colors %}
                             <option value="{{ car.colorID }}">

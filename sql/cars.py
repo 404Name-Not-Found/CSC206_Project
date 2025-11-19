@@ -18,37 +18,37 @@ class vehicleSQL():
 
     # Selects the distinct manufacturer names
     def vehicle_names(self):
-        sql = '''Select DISTINCT 
+        sql = '''SELECT DISTINCT 
                     m.manufacturer_name,
                     m.manufacturerID
                 FROM
                     vehicles
-                inner join 
+                INNER JOIN 
                     csc206cars.manufacturers m 
-                on 
+                ON 
                     vehicles.manufacturerID = m.manufacturerID;'''
 
         return sql
 
     # Selects the distinct vehicle types
     def vehicle_type(self):
-        sql = '''Select DISTINCT 
+        sql = '''SELECT DISTINCT 
                     m.vehicle_type_name,
                     m.vehicle_typeID
-                from 
+                FROM 
                     vehicles
-                inner join 
+                INNER JOIN
                     csc206cars.vehicletypes m 
-                on 
+                ON 
                     vehicles.vehicle_typeID= m.vehicle_typeID;'''
 
         return sql
 
     # Selects model names
     def vehicle_years(self):
-        sql = '''Select DISTINCT
+        sql = '''SELECT DISTINCT
                     model_year
-                from 
+                FROM 
                     vehicles
                 ORDER BY
                     model_year
@@ -57,9 +57,9 @@ class vehicleSQL():
 
     # Selects fuel type
     def vehicle_fuel_type(self):
-        sql = '''Select DISTINCT 
+        sql = '''SELECT DISTINCT 
                     fuel_type
-                from 
+                FROM 
                     vehicles'''
 
         return sql
@@ -84,15 +84,20 @@ class vehicleSQL():
         return sql
 
     # Query figured out with ezra
+
+    # passes filters dictionary 
     def sellable_vehicles(self, filters: dict | None = None):
+
+        # First get all the information from the tables
+        # Include concatednated colors ewwwwww
         sql_base = '''
             SELECT
                 v.*,
                 vcl.concatenated_colors,
                 vtn.vehicle_type_name,
                 m.manufacturer_name,
-                COALESCE(pt.purchase_price, 0.00) AS purchase_price, 
-                COALESCE(vpc.total_cost, 0.00) AS total_cost        
+                pt.purchase_price AS purchase_price, 
+                vpc.total_cost AS total_cost        
             FROM
                 csc206cars.vehicles v
             LEFT JOIN
@@ -141,6 +146,7 @@ class vehicleSQL():
                 v.vehicleID = vcl.vehicleID
         '''
 
+        # Determines if vehicle is sellable
         where_conditions = [
             "v.vehicleID NOT IN (SELECT vehicleID FROM csc206cars.salestransactions)",
             '''v.vehicleID NOT IN (
@@ -151,6 +157,8 @@ class vehicleSQL():
             )'''
         ]
 
+        # Applies filters using the filter key from app.py
+        # If the filter is in the dictionary, add to where condition
         if filters:
             if 'manID' in filters:
                 where_conditions.append(f"v.manufacturerID = {filters['manID']}")
@@ -161,13 +169,14 @@ class vehicleSQL():
             if 'modelname' in filters:
                 where_conditions.append(f"v.model_name = '{filters['modelname']}'")
 
-            # Filter by model year (numeric)
             if 'model_year' in filters:
                 where_conditions.append(f"v.model_year = {filters['model_year']}")
 
             if 'fueltype' in filters:
                 where_conditions.append(f"v.fuel_type = '{filters['fueltype']}'")
 
+
+            # Ewwwww multiple colors
             color_condition = None
             if 'colorid' in filters:
                 color_condition = f"vc.colorID = {filters['colorid']}"
@@ -185,8 +194,10 @@ class vehicleSQL():
                 '''
                 where_conditions.append(color_exists_clause)
 
+        # Combines sellable condtion with possible filters
         where_clause = "WHERE\n" + "\nAND ".join(where_conditions)
 
+        # Lets assemble this silly query
         sql = f'''
             {sql_base}
             {where_clause}
@@ -197,17 +208,20 @@ class vehicleSQL():
         return sql
 
     # 3 Queries below done with help of ma boi
+
+    # Gets salespersons first and last name and joins them
+    # Counts total vehichles, revenue, and average price
     def sale(self):
         sql = '''
             SELECT 
                 u.userID, 
                 CONCAT(u.first_name, ' ', u.last_name) AS salesperson, 
                 COUNT(s.vehicleID) AS vehicles_sold, 
-                COALESCE(SUM(pt.purchase_price),0) AS total_sold_price, 
+                SUM(pt.purchase_price) AS total_sold_price, 
             CASE WHEN 
                 COUNT(s.vehicleID) > 0 
             THEN 
-                COALESCE(SUM(pt.purchase_price),0)/COUNT(s.vehicleID) ELSE NULL END AS avg_sale_price 
+                SUM(pt.purchase_price)/COUNT(s.vehicleID) END AS avg_sale_price 
             FROM 
                 salestransactions s 
             JOIN 
@@ -227,7 +241,8 @@ class vehicleSQL():
 
         return sql
 
-    # Gets the 
+    # Gets the user first and last name and joins them together
+    # Also gets the total number of vechiles sold
     def seller(self):
         sql = '''     
             SELECT 
@@ -249,13 +264,14 @@ class vehicleSQL():
             '''
         return sql
 
+    # Get the vendor information and calculates the number of parts, total money, and average cost
     def statistics(self):
         sql = '''
             SELECT 
                 v.vendorID, 
                 v.vendor_name, 
-                COALESCE(SUM(p.quantity),0) AS parts_purchased, 
-                COALESCE(SUM(p.cost * p.quantity),0.00) AS total_spent, 
+                SUM(p.quantity) AS parts_purchased, 
+                SUM(p.cost * p.quantity) AS total_spent, 
         CASE WHEN 
             SUM(p.quantity) > 0 
         THEN 

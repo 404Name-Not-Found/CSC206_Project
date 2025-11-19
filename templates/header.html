@@ -17,13 +17,24 @@
                         <a href="/statistics" class="dropdown-item">Part Statistics</a>
                     </div>
                 </div>
+                <div class="navbar-item">
+                    {% if session.get('first_name') %}
+                        <label class="label ml-4">Hello, {{ session.get('first_name') }} {{ session.get('last_name') }}</label>
+                    {% else %}
+                        <label class="label ml-4">Welcome, Guest</label>
+                    {% endif %}
+                </div>
             </div>
         </div>
 
         <div class="navbar-end">
             <div class="navbar-item">
                 <div class="buttons is-centered">
-                    <a class="button is-medium is-primary" href="/login">Sign In</a>
+                    {% if session.get('first_name') %}
+                        <a class="button is-medium is-light" href="/delete_session">Sign Out</a>
+                    {% else %}
+                        <a class="button is-medium is-primary" href="/login">Sign In</a>
+                    {% endif %}
                 </div>
             </div>
         </div>

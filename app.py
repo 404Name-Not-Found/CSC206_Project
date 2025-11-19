@@ -141,12 +141,12 @@ def login():
 
         # If the username and password have corrosponding matches in the database
         if user and user.get('password') == password:
-
-            # Create a permanant session
             session.permanent = False
 
-            # Store the role with the role key
+            # Store information from the user dictionary in keys
             session['role'] = user.get('role')
+            session['first_name'] = user.get('first_name')
+            session['last_name'] = user.get('last_name')
 
             # Redirect to get_email
             return redirect(url_for('get_email'))
@@ -160,11 +160,10 @@ def login():
     return render_template('login.html', cars={})
 
 # If the role is obtained, display the correct template, otherwise redirect back to login
-@app.route('/')
 @app.route('/get_email')
 def get_email():
-    if "role" in session:
-        return render_template('seller.html', role=session['role'])
+    if "first_name" in session and "last_name" in session and "role" in session:
+        return redirect(url_for('home', role=session['role'], first_name=session['first_name'], last_name=session['last_name']))
     else:
         return redirect(url_for('login'))
 
@@ -172,6 +171,8 @@ def get_email():
 @app.route('/delete_session')
 def delete_session():
     session.pop('role', default=None)
+    session.pop('first_name', default=None)
+    session.pop('last_name', default=None)
     flash('You have been logged out.')
     return redirect(url_for('login'))
 

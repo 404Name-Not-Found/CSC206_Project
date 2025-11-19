@@ -89,6 +89,19 @@ def home():
 
     return render_template('display.html', cars=car_query, vehicles=output, include_filters=True, display_color=True)
 
+# Route for the vehicle details, takes a dynamic paramter
+@app.route('/vehicle/<vehicle_id>')
+def vehicle_details(vehicle_id):
+
+    qSQL = cars.vehicleSQL()
+    car_query = qSQL.vehicle_details(vehicle_id)
+    output = db.query(car_query)
+
+    # Get the first item in the dictionary which is only 1 car long but anyways then display it on the details template
+    car = output[0]
+    return render_template('details.html', car=car)
+
+
 # 3 Routes below for the various reports
 @app.route('/sales')
 def sales():
@@ -143,7 +156,7 @@ def login():
         if user and user.get('password') == password:
             session.permanent = False
 
-            # Store information from the user dictionary in keys
+            # Store information from the user dictionary in session object
             session['role'] = user.get('role')
             session['first_name'] = user.get('first_name')
             session['last_name'] = user.get('last_name')
@@ -167,7 +180,7 @@ def get_email():
     else:
         return redirect(url_for('login'))
 
-# Remove the role from the session
+# Remove the role from the session and route back to the login page
 @app.route('/delete_session')
 def delete_session():
     session.pop('role', default=None)

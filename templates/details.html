@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}Vehicle Details{% endblock %}
+
+{% block body %}
+
+<!-- Display box for the one vehicle on the page-->
+<div class="container m-5">
+	<div class="box">
+
+        <strong class="title">{{ car.model_year }} {{ car.manufacturer_name }}</strong><br><br>
+        <p>
+            <strong>VIN: </strong> {{ car.vin }}<br>
+            <strong>Vehicle Type: </strong> {{ car.vehicle_type_name }}<br>
+            <strong>Model Year: </strong> {{ car.model_year }}<br>
+            <strong>Manufacturer: </strong> {{ car.manufacturer_name }}<br>
+            <strong>Model: </strong> {{ car.model_name }}<br>
+            {% if car.concatenated_colors %}
+                <strong>Color(s): </strong>{{ car.concatenated_colors }}<br>
+		    {% endif %}
+            <strong>Price: </strong> ${{ ((1.4 * car.purchase_price|float) + (1.2 * car.total_cost|float)) | round(2) }}<br>
+            <strong>Description:</strong>{{ car.description }}
+        </p>
+
+	</div>
+    
+	<a class="button is-white mt-4" href="{{ url_for('home') }}">Back</a>
+</div>
+
+{% endblock %}

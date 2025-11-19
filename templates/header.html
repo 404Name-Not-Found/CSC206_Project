@@ -17,21 +17,30 @@
                         <a href="/statistics" class="dropdown-item">Part Statistics</a>
                     </div>
                 </div>
-                <div class="navbar-item">
-                    {% if session.get('first_name') %}
-                        <label class="label ml-4">Hello, {{ session.get('first_name') }} {{ session.get('last_name') }}</label>
-                    {% else %}
-                        <label class="label ml-4">Welcome, Guest</label>
-                    {% endif %}
-                </div>
             </div>
         </div>
 
         <div class="navbar-end">
             <div class="navbar-item">
+
+                <!-- Display the first and last name of the user if they are logged in -->
+                {% if session.get('first_name') %}
+                    <label class="label ml-4">
+                        Hello, {{ session.get('first_name') }} {{ session.get('last_name') }}<br>
+                        Role: {{ session.get('role') }}
+                    </label>
+                {% endif %}
+            </div>
+
+
+            <div class="navbar-item">
                 <div class="buttons is-centered">
+
+                    <!-- If they are logged in display the sign out which, if clicked, will get rid of that session-->
                     {% if session.get('first_name') %}
                         <a class="button is-medium is-light" href="/delete_session">Sign Out</a>
+
+                    <!-- If they are not logged in, display the login button-->
                     {% else %}
                         <a class="button is-medium is-primary" href="/login">Sign In</a>
                     {% endif %}

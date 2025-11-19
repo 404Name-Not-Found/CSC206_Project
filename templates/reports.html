@@ -15,9 +15,9 @@
                     <p>
                         <strong class="is-size-5">Sales Person: {{ p.salesperson }}</strong>
                         <br>
-                        <small>Vehicles Sold:</small> <strong>{{ p.vehicles_sold }}</strong>
+                        <small>Vehicles Sold: </small>{{ p.vehicles_sold }}
                         <br>
-                        <small>Total Sold Price:</small> <strong>${{ p.total_sold_price | round(2, 'floor') | string}}</strong>
+                        <small>Total Sold Price: </small>${{ p.total_sold_price | round(2, 'floor') | string}}
                         <br>
                         <small>Average Sale Price:</small>
                         {% if p.avg_sale_price %}

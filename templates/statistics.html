@@ -15,9 +15,9 @@
                     <p>
                         <strong class="is-size-5">{{ p.vendor_name }}</strong>
                         <br>
-                        <small>Parts Purchased:</small> <strong>{{ p.parts_purchased }}</strong>
+                        <small>Parts Purchased: </small>{{ p.parts_purchased }}
                         <br>
-                        <small>Total Parts Cost:</small> <strong>${{ p.total_spent | round(2, 'floor') | string }}</strong>
+                        <small>Total Parts Cost: </small>${{ p.total_spent | round(2, 'floor') | string }}
                         <br>
                         <small>Avg. Cost Per Part:</small>
                         {% if p.avg_cost_per_part %}

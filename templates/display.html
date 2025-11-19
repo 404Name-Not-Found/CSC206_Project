@@ -11,32 +11,35 @@
 
     <!-- The columns that present the car information in boxes -->
     <div class="column p-4 is-one-third">
-        <div class="box">
-            <figure class="image is-200x200">
-                <img src="{{ url_for('static', filename='images/simplecar.jpg') }}" alt="car">
-            </figure>
+        <a href="{{ url_for('vehicle_details', vehicle_id=car.vehicleID) }}" class="box">
             <div class="media-content">
                 <p class="is-size-4 mb-1">
 
                     <strong>
                         Vehicle Type: {{ car.vehicle_type_name }}<br>
                     </strong>
-                        Price: ${{ ((1.4 * car.purchase_price|float) + (1.2 * car.total_cost|float)) | round(2) }}<br>
                         Model Year: {{ car.model_year }}<br>
                         Manufacturer: {{ car.manufacturer_name }}<br>
-                        Model: {{ car.model_name }}<br>
-                        VIN: {{ car.vin }} <br>
-                        Description: {{ car.description }}<br>
-
                         {% if display_color==True %}
                         Color: {{ car.concatenated_colors }}
                         {% endif %}
                 </p>
-                <p class="is-size-5 mb-1">
-                    </p>
-                <br>
             </div>
-        </div>
+
+
+            {% if session.get('role') == 'Buyer' or session.get('role') == 'Owner' %}
+                <div class="media-content">
+                    <a class=" button is-medium is-info">Buy</a>
+                </div>
+            {% endif %}
+
+            {% if session.get('role') == 'Sales' %}
+                <div class="media-content">
+                    <a class=" button is-medium is-info">Buy</a>
+                </div>
+            {% endif %}
+            
+        </a>
     </div>
 
 

@@ -15,10 +15,9 @@
                     <p>
                         <strong class="is-size-5">Seller: {{ p.seller_name }}</strong>
                         <br>
-                        <small>Vehicles Sold to Dealer:</small> <strong>{{ p.vehicles_sold_to_dealer }}</strong>
+                        <small>Vehicles Sold to Dealer: </small>{{ p.vehicles_sold_to_dealer }}
                         <br>
-                        <small>Total Paid to Seller:</small>
-                        ${{ p.total_paid | round(2, 'floor') | string }}
+                        <small>Total Paid to Seller: </small> ${{ p.total_paid | round(2, 'floor') | string }}
                     </p>
                 </div>
             </div>

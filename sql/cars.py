@@ -207,6 +207,68 @@ class vehicleSQL():
         '''
         return sql
 
+    # Get a single vehicle by its ID using LIMIT
+    def vehicle_details(self, vehicle_id):
+        sql = f'''
+            SELECT
+                v.*,
+                vcl.concatenated_colors,
+                vtn.vehicle_type_name,
+                m.manufacturer_name,
+                pt.purchase_price AS purchase_price,
+                vpc.total_cost AS total_cost
+            FROM
+                csc206cars.vehicles v
+            LEFT JOIN
+                csc206cars.manufacturers m
+            ON
+                v.manufacturerID = m.manufacturerID
+            LEFT JOIN
+                csc206cars.vehicletypes vtn
+            ON
+                v.vehicle_typeID = vtn.vehicle_typeID
+            LEFT JOIN
+                csc206cars.purchasetransactions pt
+            ON
+                v.vehicleID = pt.vehicleID
+            LEFT JOIN
+                (
+                    SELECT
+                        po.vehicleID,
+                        SUM(p.cost) AS total_cost
+                    FROM
+                        csc206cars.partorders po
+                    INNER JOIN
+                        csc206cars.parts p
+                    ON
+                        po.part_orderID = p.part_orderID
+                    GROUP BY
+                        po.vehicleID
+                ) AS vpc
+            ON
+                v.vehicleID = vpc.vehicleID
+            LEFT JOIN
+                (
+                    SELECT
+                        vc.vehicleID,
+                        GROUP_CONCAT(c.color_name ORDER BY c.color_name ASC SEPARATOR ', ') AS concatenated_colors
+                    FROM
+                        csc206cars.vehiclecolors vc
+                    INNER JOIN
+                        csc206cars.colors c
+                    ON
+                        vc.colorID = c.colorID
+                    GROUP BY
+                        vc.vehicleID
+                ) AS vcl
+            ON
+                v.vehicleID = vcl.vehicleID
+            WHERE
+                v.vehicleID = {vehicle_id}
+            LIMIT 1
+        '''
+        return sql
+
     # 3 Queries below done with help of ma boi
 
     # Gets salespersons first and last name and joins them
@@ -294,13 +356,16 @@ class vehicleSQL():
         '''
         return sql
 
-    # Query returns the username, password, and role for the login information
+    # Query returns information from the users table
     def users(self):
         sql = '''SELECT
                     username,
                     password,
-                    role
+                    role,
+                    first_name,
+                    last_name
                 FROM
-                    csc206cars.users'''
+                    csc206cars.users;
+                '''
 
         return sql

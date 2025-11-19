@@ -17,7 +17,7 @@
                         <br>
                         <small>Parts Purchased:</small> <strong>{{ p.parts_purchased }}</strong>
                         <br>
-                        <small>Total Parts Cost:</small> <strong>${{ p.total_parts }}</strong>
+                        <small>Total Parts Cost:</small> <strong>${{ p.total_spent | round(2, 'floor') | string }}</strong>
                         <br>
                         <small>Avg. Cost Per Part:</small>
                         {% if p.avg_cost_per_part %}

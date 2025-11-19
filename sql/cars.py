@@ -227,13 +227,14 @@ class vehicleSQL():
 
         return sql
 
+    # Gets the 
     def seller(self):
         sql = '''     
             SELECT 
                 c.customerID, 
                 CONCAT(c.first_name, ' ', c.last_name) AS seller_name, 
                 COUNT(pt.vehicleID) AS vehicles_sold_to_dealer, 
-                COALESCE(SUM(pt.purchase_price),0) AS total_paid 
+                SUM(pt.purchase_price) AS total_paid 
             FROM 
                 purchasetransactions pt 
             JOIN 

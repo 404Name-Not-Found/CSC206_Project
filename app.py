@@ -29,11 +29,14 @@ def sql_queries():
         'users': vSQL.users(),
     }
 
+    # Dictionary for car queries
     all_cars = {}
 
+    # Loop through queries dictionary and match the data key to the sql value
     for key, sql in queries.items():
         all_cars[key] = db.query(sql)
 
+    # Return the dictionary
     return all_cars
 
 
@@ -41,14 +44,19 @@ def sql_queries():
 @app.route('/home')
 def home():
 
-    # Filter help from my boi as well
+    # Filter help from my boi ezi as well
+
+    # First get the information related to the key from the URL
     manID = request.args.get('manufacturer_name')
     vehicletypeID = request.args.get('vehicle_type')
     modelyear = request.args.get('model_year')
     fueltype = request.args.get('fuel_type')
     colorid = request.args.get('color_selection')
 
+    # Dictionary for the filters
     filters = {}
+
+    # Add the information to the dictionary if it exists
     try:
         if manID:
             filters['manID'] = int(manID)
@@ -75,10 +83,13 @@ def home():
     qSQL = cars.vehicleSQL()
 
     car_query = sql_queries()
+
+    # Calls the (scary) sellable vehicles query and passes the filters dictionary as the parameter
     output = db.query(qSQL.sellable_vehicles(filters if filters else None))
 
     return render_template('display.html', cars=car_query, vehicles=output, include_filters=True, display_color=True)
 
+# 3 Routes below for the various reports
 @app.route('/sales')
 def sales():
 

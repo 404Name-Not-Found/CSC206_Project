@@ -17,8 +17,7 @@
                         <br>
                         <small>Vehicles Sold:</small> <strong>{{ p.vehicles_sold }}</strong>
                         <br>
-                        <small>Total Sold Price:</small> <strong>${{ p.total_sold_price | round(2, 'floor') | string
-                        }}</strong>
+                        <small>Total Sold Price:</small> <strong>${{ p.total_sold_price | round(2, 'floor') | string}}</strong>
                         <br>
                         <small>Average Sale Price:</small>
                         {% if p.avg_sale_price %}

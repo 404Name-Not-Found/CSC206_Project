@@ -7,23 +7,24 @@
 <h1 class="title is-2 has-text-centered">Seller History Report</h1>
 
 <div class="container">
-    {% for p in info %}
-    <div class="box">
-        <article class="media">
-            <div class="media-content">
-                <div class="content">
-                    <p>
-                        <strong class="is-size-5">Seller: {{ p.seller_name }}</strong>
-                        <br>
-                        <small>Vehicles Sold to Dealer: </small>{{ p.vehicles_sold_to_dealer }}
-                        <br>
-                        <small>Total Paid to Seller: </small> ${{ p.total_paid | round(2, 'floor') | string }}
-                    </p>
-                </div>
-            </div>
-        </article>
-    </div>
-    {% endfor %}
+    <table class="table is-striped is-fullwidth is-bordered">
+        <thead>
+            <tr>
+                <th>Seller</th>
+                <th>Vehicles Sold to Dealer</th>
+                <th>Total Paid to Seller</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for p in info %}
+            <tr>
+                <td>{{ p.seller_name }}</td>
+                <td>{{ p.vehicles_sold_to_dealer }}</td>
+                <td>${{ p.total_paid | round(2, 'floor') | string }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
 </div>
 
 {% endblock %}

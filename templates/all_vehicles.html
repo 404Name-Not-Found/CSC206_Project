@@ -1,20 +1,22 @@
 {% extends "base.html" %}
 
-{% block title %}Vehicles{% endblock %}
+{% block title %}All Vehicles{% endblock %}
 
 {% block body %}
 
-<h1 class="title is-2 has-text-centered mb-5">Filtered Vehicle Results</h1>
+<!-- The main display on the home page -->
+<h1 class="title is-2 has-text-centered mb-5">All Vehicles</h1>
 
 <div class="columns m-5 is-multiline">
     {% for car in vehicles %}
 
+    <!-- The columns that present the car information in boxes -->
     <div class="column p-4 is-one-third">
         <a href="{{ url_for('vehicle_details', vehicle_id=car.vehicleID) }}" class="box">
             <div class="media-content">
                 <p class="is-size-4 mb-1">
 
-                                        <strong>
+                    <strong>
                         Vehicle Type: {{ car.vehicle_type_name }}<br>
                     </strong>
                         VIN: {{ car.vin }}<br>
@@ -29,6 +31,8 @@
             </div>            
         </a>
     </div>
+
+
     {% endfor %}
 </div>
 

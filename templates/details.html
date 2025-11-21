@@ -23,8 +23,22 @@
         </p>
 
 	</div>
-    
-	<a class="button is-white mt-4" href="{{ url_for('home') }}">Back</a>
+
+    <!-- Buttons at the bottom. Some display based on the role of the user currently logged in -->
+    <div>
+
+        <a class="button is-medium is-white" href="javascript:history.back()">Back</a>
+
+        {% if session.get('role') == 'Buyer' or session.get('role') == 'Owner' %}
+            <a class="button is-medium is-success">Buy</a>
+        {% endif %}
+
+        {% if session.get('role') == 'Sales' %}
+            <a class="button is-medium is-success">Sell</a>
+        {% endif %}
+    </div>
+
+
 </div>
 
 {% endblock %}

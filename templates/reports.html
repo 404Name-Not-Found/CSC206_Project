@@ -7,28 +7,25 @@
 <h1 class="title is-2 has-text-centered">Sales Productivity Report</h1>
 
 <div class="container">
-    {% for p in info %}
-    <div class="box">
-        <article class="media">
-            <div class="media-content">
-                <div class="content">
-                    <p>
-                        <strong class="is-size-5">Sales Person: {{ p.salesperson }}</strong>
-                        <br>
-                        <small>Vehicles Sold: </small>{{ p.vehicles_sold }}
-                        <br>
-                        <small>Total Sold Price: </small>${{ p.total_sold_price | round(2, 'floor') | string}}
-                        <br>
-                        <small>Average Sale Price:</small>
-                        {% if p.avg_sale_price %}
-                        ${{ p.avg_sale_price | round(2, 'floor') | string }}
-                        {% else %}
-                        {% endif %}
-                    </p>
-                </div>
-            </div>
-        </article>
-    </div>
-    {% endfor %}
+    <table class="table is-striped is-fullwidth is-bordered">
+        <thead>
+            <tr>
+                <th>Sales Person</th>
+                <th>Vehicles Sold</th>
+                <th>Total Sold Price</th>
+                <th>Average Sale Price</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for p in info %}
+            <tr>
+                <td>{{ p.salesperson }}</td>
+                <td>{{ p.vehicles_sold }}</td>
+                <td>${{ p.total_sold_price | round(2, 'floor') | string}}</td>
+                <td>${{ p.avg_sale_price | round(2, 'floor') | string }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
 </div>
 {% endblock %}

@@ -20,6 +20,7 @@ def sql_queries():
     # To loop through sql queries:
     # https://stackoverflow.com/questions/16947276/flask-sqlalchemy-iterate-column-values-on-a-single-row
     queries = {
+        'all_vehicles': vSQL.display_vehicles(),
         'vehicles': vSQL.all_vehicles(),
         'manufacturer': vSQL.vehicle_names(),
         'vehicle_types': vSQL.vehicle_type(),
@@ -89,7 +90,7 @@ def home():
 
     return render_template('display.html', cars=car_query, vehicles=output, include_filters=True, display_color=True)
 
-# Route for the vehicle details, takes a dynamic paramter
+# Route for the vehicle details, takes a dynamic paramter for the sql query
 @app.route('/vehicle/<vehicle_id>')
 def vehicle_details(vehicle_id):
 
@@ -100,6 +101,18 @@ def vehicle_details(vehicle_id):
     # Get the first item in the dictionary which is only 1 car long but anyways then display it on the details template
     car = output[0]
     return render_template('details.html', car=car)
+
+# Route to display all vehicles
+@app.route('/all_vehicles')
+def all_vehicles():
+    
+    qSQL = cars.vehicleSQL()
+    output = db.query(qSQL.display_vehicles())
+
+    car_query = sql_queries()
+
+    return render_template('all_vehicles.html', vehicles=output, cars=car_query, include_filters=True, display_color=True)
+
 
 
 # 3 Routes below for the various reports

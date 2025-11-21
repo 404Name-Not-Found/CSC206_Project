@@ -7,29 +7,26 @@
 <h1 class="title is-2 has-text-centered">Part Statistics Report</h1>
 
 <div class="container">
-    {% for p in info %}
-    <div class="box">
-        <article class="media">
-            <div class="media-content">
-                <div class="content">
-                    <p>
-                        <strong class="is-size-5">{{ p.vendor_name }}</strong>
-                        <br>
-                        <small>Parts Purchased: </small>{{ p.parts_purchased }}
-                        <br>
-                        <small>Total Parts Cost: </small>${{ p.total_spent | round(2, 'floor') | string }}
-                        <br>
-                        <small>Avg. Cost Per Part:</small>
-                        {% if p.avg_cost_per_part %}
-                        ${{ p.avg_cost_per_part | round(2, 'floor') | string }}
-                        {% else %}
-                        {% endif %}
-                    </p>
-                </div>
-            </div>
-        </article>
-    </div>
-    {% endfor %}
+    <table class="table is-striped is-fullwidth is-bordered">
+        <thead>
+            <tr>
+                <th>Vendor</th>
+                <th>Parts Purchased</th>
+                <th>Total Parts Cost</th>
+                <th>Avg. Cost Per Part</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for p in info %}
+            <tr>
+                <td>{{ p.vendor_name }}</td>
+                <td>{{ p.parts_purchased }}</td>
+                <td>${{ p.total_spent | round(2, 'floor') | string }}</td>
+                <td>{% if p.avg_cost_per_part %}${{ p.avg_cost_per_part | round(2, 'floor') | string }}{% endif %}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
 </div>
 
 {% endblock %}

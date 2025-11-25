@@ -4,9 +4,8 @@
 
 {% block body %}
 
-<!-- Display box for the one vehicle on the page-->
 <div class="container m-5">
-	<div class="box">
+    <div class="box">
 
         <strong class="title">{{ car.model_year }} {{ car.manufacturer_name }}</strong><br><br>
         <p>
@@ -17,27 +16,84 @@
             <strong>Model: </strong> {{ car.model_name }}<br>
             {% if car.concatenated_colors %}
                 <strong>Color(s): </strong>{{ car.concatenated_colors }}<br>
-		    {% endif %}
-            <strong>Price: </strong> ${{ ((1.4 * car.purchase_price|float) + (1.2 * car.total_cost|float)) | round(2) }}<br>
-            <strong>Description:</strong>{{ car.description }}
-        </p>
+            {% endif %}
+            <strong>Price: </strong> ${{ ((1.4 * (car.purchase_price|default(0)|float)) + (1.2 * (car.total_cost|default(0)|float))) | round(2) }}<br>
+            <strong>Description: </strong> {{ car.description}}<br>
+        </p> 
 
-	</div>
+        {% if parts and parts|length > 0 and (session.get('role') == 'Owner' or session.get('role') == 'Buyer') %}
+            <div class="parts-included-section">
+                <br><br><strong class="title is-4">Parts Included:</strong><br><br>
+                <div class="box">
+                    <table class="table is-striped is-fullwidth">
+                        <thead>
+                            <tr>
+                                <th>Description</th>
+                                <th>Part Number</th>
+                                <th>Cost</th>
+                                <th>Quantity</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                           {% for part in parts %}
+                               <tr>
+                                   <td>{{ part.description or 'N/A' }}</td>
+                                   <td>{{ part.part_number or 'N/A' }}</td>
+                                   <td>${{ part.cost | round(2) }}</td>
+                                   <td>{{ part.quantity }}</td>
+                                   <td>{{ part.status }}</td>
+                                   <td>
+                                       {% if part.status != 'Installed' %}
+                                           <form method="post" action="{{ url_for('install_part', part_id=part.partID) }}" style="display:inline">
+                                               <input type="hidden" name="vehicle_id" value="{{ car.vehicleID }}">
+                                               <button class="button is-small is-link" type="submit">Mark Installed</button>
+                                           </form>
+                                       {% else %}
+                                           <span class="tag is-success">Installed</span>
+                                       {% endif %}
+                                   </td>
+                               </tr>
+                           {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        {% endif %}
 
-    <!-- Buttons at the bottom. Some display based on the role of the user currently logged in -->
+        {% if session.get('role') == 'Owner' %}
+            <div class="box seller-info mt-4">
+               <strong class="title is-4">Seller (Purchased From)</strong>
+                <p><strong>Name: </strong> {{ seller.first_name }} {{ seller.last_name }}</p>
+                <p><strong>Address: </strong> {{ seller.street }}, {{ seller.city }}, {{ seller.state }} {{ seller.postal_code }}</p>
+                <p><strong>Phone: </strong> {{ seller.phone_number }}</p>
+                <p><strong>Email: </strong> {{ seller.email_address }}</p>
+            </div>
+
+            <div class="box buyer-info mt-4">
+                <strong class="title is-4">Buyer (Sold To)</strong>
+                <p><strong>Name: </strong> {{ buyer.first_name }} {{ buyer.last_name }}</p>
+                <p><strong>Address: </strong> {{ buyer.street }}, {{ buyer.city }}, {{ buyer.state }} {{ buyer.postal_code }}</p>
+                <p><strong>Phone: </strong> {{ buyer.phone_number }}</p>
+                <p><strong>Email: </strong> {{ buyer.email_address }}</p>
+            </div>
+        {% endif %}
+    </div>
+
+
+
     <div>
-
-        <a class="button is-medium is-white" href="javascript:history.back()">Back</a>
+        <a class="button is-medium is-white mx-5 mb-5" href="javascript:history.back()">Back</a>
 
         {% if session.get('role') == 'Buyer' or session.get('role') == 'Owner' %}
             <a class="button is-medium is-success">Buy</a>
         {% endif %}
 
-        {% if session.get('role') == 'Sales' %}
-            <a class="button is-medium is-success">Sell</a>
+        {% if session.get('role') == 'Sales' or session.get('role') == 'Owner' %}
+            <a class="button is-medium is-success">Sell Vehicle</a>
         {% endif %}
     </div>
-
 
 </div>
 

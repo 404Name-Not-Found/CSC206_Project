@@ -327,6 +327,84 @@ class vehicleSQL():
         '''
         return sql
 
+    # Gets parts for a specific vehicle
+    def parts_for_vehicle(self, vehicle_id):
+        sql = f'''
+            SELECT
+                p.partID,
+                p.part_orderID,
+                p.part_number,
+                p.cost,
+                p.description,
+                p.quantity,
+                p.status,
+                po.order_number,
+                v.vehicleID,
+                v.model_name,
+                v.model_year
+            FROM
+                csc206cars.partorders po
+            INNER JOIN
+                csc206cars.parts p
+            ON
+                po.part_orderID = p.part_orderID
+            INNER JOIN
+                csc206cars.vehicles v
+            ON
+                po.vehicleID = v.vehicleID
+            WHERE
+                v.vehicleID = {vehicle_id}
+            ORDER BY
+                po.part_orderID, p.partID
+        '''
+        return sql
+
+    # Returns seller (purchase) and buyer (sales) customer information for a vehicle
+    def transaction_customers(self, vehicle_id):
+        sql = f'''
+            SELECT
+                pt.customerID AS seller_customerID,
+                c1.first_name AS seller_first_name,
+                c1.last_name AS seller_last_name,
+                c1.street AS seller_street,
+                c1.city AS seller_city,
+                c1.state AS seller_state,
+                c1.postal_code AS seller_postal_code,
+                c1.phone_number AS seller_phone_number,
+                c1.email_address AS seller_email_address,
+                s.customerID AS buyer_customerID,
+                c2.first_name AS buyer_first_name,
+                c2.last_name AS buyer_last_name,
+                c2.street AS buyer_street,
+                c2.city AS buyer_city,
+                c2.state AS buyer_state,
+                c2.postal_code AS buyer_postal_code,
+                c2.phone_number AS buyer_phone_number,
+                c2.email_address AS buyer_email_address
+            FROM
+                csc206cars.vehicles v
+            LEFT JOIN
+                csc206cars.purchasetransactions pt
+            ON
+                v.vehicleID = pt.vehicleID
+            LEFT JOIN
+                csc206cars.customers c1
+            ON
+                pt.customerID = c1.customerID
+            LEFT JOIN
+                csc206cars.salestransactions s
+            ON
+                v.vehicleID = s.vehicleID
+            LEFT JOIN
+                csc206cars.customers c2
+            ON
+                s.customerID = c2.customerID
+            WHERE
+                v.vehicleID = {vehicle_id}
+            LIMIT 1
+        '''
+        return sql
+
     # 3 Queries below done with help of ma boi
 
     # Gets salespersons first and last name and joins them
@@ -427,3 +505,6 @@ class vehicleSQL():
                 '''
 
         return sql
+
+
+    

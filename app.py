@@ -100,7 +100,62 @@ def vehicle_details(vehicle_id):
 
     # Get the first item in the dictionary which is only 1 car long but anyways then display it on the details template
     car = output[0]
-    return render_template('details.html', car=car)
+
+    
+    # Get parts for the vehicle, excepct some don't have parts so handle that
+    try:
+        vid = int(vehicle_id)
+    except (TypeError, ValueError):
+        vid = None
+
+    # Dictionary for car parts
+    parts = []
+    
+    # If there is a vechile id
+    if vid is not None:
+        parts_sql = qSQL.parts_for_vehicle(vid)
+        parts = db.query(parts_sql)
+
+
+    seller = None
+    buyer = None
+    if vid is not None:
+
+        # Get cusomter information
+        tc_sql = qSQL.transaction_customers(vid)
+        tc_res = db.query(tc_sql)
+
+        # If database returne result
+        if tc_res and len(tc_res) > 0:
+
+            # Take the first row(Should only be 1)
+            row = tc_res[0]
+
+            # Populater seller then buyer with the correct information
+            if row.get('seller_customerID') is not None:
+                seller = {
+                    'first_name': row.get('seller_first_name'),
+                    'last_name': row.get('seller_last_name'),
+                    'street': row.get('seller_street'),
+                    'city': row.get('seller_city'),
+                    'state': row.get('seller_state'),
+                    'postal_code': row.get('seller_postal_code'),
+                    'phone_number': row.get('seller_phone_number'),
+                    'email_address': row.get('seller_email_address')
+                }
+            if row.get('buyer_customerID') is not None:
+                buyer = {
+                    'first_name': row.get('buyer_first_name'),
+                    'last_name': row.get('buyer_last_name'),
+                    'street': row.get('buyer_street'),
+                    'city': row.get('buyer_city'),
+                    'state': row.get('buyer_state'),
+                    'postal_code': row.get('buyer_postal_code'),
+                    'phone_number': row.get('buyer_phone_number'),
+                    'email_address': row.get('buyer_email_address')
+                }
+
+    return render_template('details.html', car=car, parts=parts, seller=seller, buyer=buyer)
 
 # Route to display all vehicles
 @app.route('/all_vehicles')
@@ -188,8 +243,15 @@ def login():
 # If the role is obtained, display the correct template, otherwise redirect back to login
 @app.route('/get_email')
 def get_email():
+
+    # Redirects based on role
     if "first_name" in session and "last_name" in session and "role" in session:
-        return redirect(url_for('home', role=session['role'], first_name=session['first_name'], last_name=session['last_name']))
+        if session["role"] == 'Buyer':
+            return redirect(url_for('home', role=session['role'], first_name=session['first_name'], last_name=session['last_name']))
+        if session["role"] == 'Owner':
+            return redirect(url_for('all_vehicles', role=session['role'], first_name=session['first_name'], last_name=session['last_name']))
+        else:
+            return redirect(url_for('home', role=session['role'], first_name=session['first_name'], last_name=session['last_name']))
     else:
         return redirect(url_for('login'))
 
@@ -201,6 +263,29 @@ def delete_session():
     session.pop('last_name', default=None)
     flash('You have been logged out.')
     return redirect(url_for('login'))
+
+
+# Marks a part as installed and updates the database
+@app.route('/install_part/<int:part_id>', methods=['POST'])
+def install_part(part_id):
+    vehicle_id = request.form.get('vehicle_id')
+
+    # Connect to database and update part
+    try:
+        cur = db.mysql.connection.cursor()
+        update_sql = "UPDATE csc206cars.parts SET status = 'Installed' WHERE partID = %s"
+        cur.execute(update_sql, (part_id,))
+        db.mysql.connection.commit()
+        cur.close()
+        flash('Part marked as Installed.')
+    except Exception as e:
+        flash(f'Error installing part: {e}')
+
+    # Go back to vehicle details page when finished
+    if vehicle_id:
+        return redirect(url_for('vehicle_details', vehicle_id=vehicle_id))
+    return redirect(url_for('home'))
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5001, debug=True)

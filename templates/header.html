@@ -4,6 +4,7 @@
 
         <div class="navbar-start is-flex is-align-items-center">
             <a href="/home" class="navbar-item is-size-4 has-text-weight-bold has-text-info">Ben's Automobiles</a>
+            {% if session.get('role') == 'Owner' %}
             <div class="dropdown">
                 <div class="dropdown-trigger">
                     <button class="button" aria-haspopup="true" aria-controls="dropdown-menu1">
@@ -19,15 +20,10 @@
                     </div>
                 </div>
             </div>
+            {% endif %}
             <div class="navbar-item">
                 <a href="/all_vehicles" class="button">All Cars</a>
             </div>
-
-            {% if session.get('role') == 'Buyer' or session.get('role') == 'Owner' %}
-                <div class="navbar-item">
-                    <a href="" class="button px-5 is-success">Buy</a>
-                </div>
-            {% endif %}
 
         </div>
 

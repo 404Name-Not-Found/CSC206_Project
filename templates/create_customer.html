@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% block title %}Create Customer{% endblock %}
+
+{% block body %}
+<section class="section">
+  <div class="container">
+    <h1 class="title is-4">Create Customer</h1>
+
+    <div class="box">
+      <form method="post" action="{{ url_for('create_customer', vehicle_id=vehicle_id, action=action) }}">
+        <div class="columns">
+          <div class="column">
+            <div class="field">
+              <label class="label">First Name</label>
+              <div class="control">
+                <input class="input" type="text" name="first_name" required>
+              </div>
+            </div>
+            <div class="field">
+              <label class="label">Last Name</label>
+              <div class="control">
+                <input class="input" type="text" name="last_name" required>
+              </div>
+            </div>
+            <div class="field">
+              <label class="label">ID Number</label>
+              <div class="control">
+                <input class="input" type="text" name="id_number" required>
+              </div>
+            </div>
+            <div class="field">
+              <label class="label">Phone Number</label>
+              <div class="control">
+                <input class="input" type="text" name="phone_number" required>
+              </div>
+            </div>
+            <div class="field">
+              <label class="label">Email Address (optional)</label>
+              <div class="control">
+                <input class="input" type="email" name="email_address" placeholder="name@example.com">
+              </div>
+            </div>
+            <div class="field">
+              <label class="label">Business Name (optional)</label>
+              <div class="control">
+                <input class="input" type="text" name="business_name" placeholder="Business or Organization">
+              </div>
+            </div>
+          </div>
+          <div class="column">
+            <div class="field">
+              <label class="label">Street</label>
+              <div class="control">
+                <input class="input" type="text" name="street" required>
+              </div>
+            </div>
+            <div class="field">
+              <label class="label">City</label>
+              <div class="control">
+                <input class="input" type="text" name="city" required>
+              </div>
+            </div>
+            <div class="field">
+              <label class="label">State</label>
+              <div class="control">
+                <input class="input" type="text" name="state" required>
+              </div>
+            </div>
+            <div class="field">
+              <label class="label">Postal Code</label>
+              <div class="control">
+                <input class="input" type="text" name="postal_code" required>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="field is-grouped">
+          <div class="control">
+            <a class="button is-light" href="{{ url_for('select_customer', vehicle_id=vehicle_id, action=action) }}">Back to Select</a>
+          </div>
+          <div class="control">
+            <button type="submit" class="button is-primary">Save Customer</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+{% endblock %}

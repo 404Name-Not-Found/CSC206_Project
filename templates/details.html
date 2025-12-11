@@ -21,7 +21,7 @@
             <strong>Description: </strong> {{ car.description}}<br>
         </p> 
 
-        {% if parts and parts|length > 0 and (session.get('role') == 'Owner' or session.get('role') == 'Buyer') %}
+        {% if session.get('role') == 'Owner' or session.get('role') == 'Buyer' %}
             <div class="parts-included-section">
                 <br><br><strong class="title is-4">Parts Included:</strong><br><br>
                 <div class="box">
@@ -37,25 +37,31 @@
                             </tr>
                         </thead>
                         <tbody>
-                           {% for part in parts %}
+                           {% if parts and parts|length > 0 %}
+                               {% for part in parts %}
+                                   <tr>
+                                       <td>{{ part.description or 'N/A' }}</td>
+                                       <td>{{ part.part_number or 'N/A' }}</td>
+                                       <td>${{ (part.cost or 0) | float | round(2) }}</td>
+                                       <td>{{ part.quantity or 0 }}</td>
+                                       <td>{{ part.status or 'N/A' }}</td>
+                                       <td>
+                                           {% if part.status != 'Installed' %}
+                                               <form method="post" action="{{ url_for('install_part', part_id=part.partID) }}" style="display:inline">
+                                                   <input type="hidden" name="vehicle_id" value="{{ car.vehicleID }}">
+                                                   <button class="button is-small is-link" type="submit">Mark Installed</button>
+                                               </form>
+                                           {% else %}
+                                               <span class="tag is-success">Installed</span>
+                                           {% endif %}
+                                       </td>
+                                   </tr>
+                               {% endfor %}
+                           {% else %}
                                <tr>
-                                   <td>{{ part.description or 'N/A' }}</td>
-                                   <td>{{ part.part_number or 'N/A' }}</td>
-                                   <td>${{ part.cost | round(2) }}</td>
-                                   <td>{{ part.quantity }}</td>
-                                   <td>{{ part.status }}</td>
-                                   <td>
-                                       {% if part.status != 'Installed' %}
-                                           <form method="post" action="{{ url_for('install_part', part_id=part.partID) }}" style="display:inline">
-                                               <input type="hidden" name="vehicle_id" value="{{ car.vehicleID }}">
-                                               <button class="button is-small is-link" type="submit">Mark Installed</button>
-                                           </form>
-                                       {% else %}
-                                           <span class="tag is-success">Installed</span>
-                                       {% endif %}
-                                   </td>
+                                   <td colspan="6" class="has-text-centered has-text-grey">No parts recorded for this vehicle.</td>
                                </tr>
-                           {% endfor %}
+                           {% endif %}
                         </tbody>
                     </table>
                 </div>
@@ -86,12 +92,12 @@
     <div>
         <a class="button is-medium is-white mx-5 mb-5" href="javascript:history.back()">Back</a>
 
-        {% if session.get('role') == 'Buyer' or session.get('role') == 'Owner' %}
-            <a class="button is-medium is-success">Buy</a>
+        {% if eligible_for_sale and (session.get('role') == 'Sales' or session.get('role') == 'Owner') %}
+            <a class="button is-medium is-success" href="{{ url_for('select_customer', vehicle_id=car.vehicleID, action='sell') }}">Sell Vehicle</a>
         {% endif %}
 
-        {% if session.get('role') == 'Sales' or session.get('role') == 'Owner' %}
-            <a class="button is-medium is-success">Sell Vehicle</a>
+        {% if session.get('role') == 'Buyer' %}
+            <a class="button is-medium is-primary" href="{{ url_for('select_customer', vehicle_id=car.vehicleID, action='buy') }}">Buy Vehicle</a>
         {% endif %}
     </div>
 

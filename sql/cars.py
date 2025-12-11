@@ -1,5 +1,6 @@
 class vehicleSQL():
 
+    
     def display_vehicles(self):
         sql = '''SELECT
                 v.*,
@@ -7,6 +8,7 @@ class vehicleSQL():
                 vtn.vehicle_type_name,
                 m.manufacturer_name,
                 pt.purchase_price AS purchase_price,
+                pt.vehicle_condition AS vehicle_condition,
                 vpc.total_cost AS total_cost
             FROM
                 csc206cars.vehicles v
@@ -155,6 +157,7 @@ class vehicleSQL():
                 vtn.vehicle_type_name,
                 m.manufacturer_name,
                 pt.purchase_price AS purchase_price, 
+                pt.vehicle_condition AS vehicle_condition,
                 vpc.total_cost AS total_cost        
             FROM
                 csc206cars.vehicles v
@@ -265,6 +268,114 @@ class vehicleSQL():
         '''
         return sql
 
+    # Returns all unsold vehicles, regardless of part installation status
+    def unsold_vehicles(self, filters: dict | None = None):
+
+        sql_base = '''
+            SELECT
+                v.*,
+                vcl.concatenated_colors,
+                vtn.vehicle_type_name,
+                m.manufacturer_name,
+                pt.purchase_price AS purchase_price,
+                pt.vehicle_condition AS vehicle_condition,
+                vpc.total_cost AS total_cost
+            FROM
+                csc206cars.vehicles v
+            LEFT JOIN
+                csc206cars.manufacturers m
+            ON
+                v.manufacturerID = m.manufacturerID
+            LEFT JOIN
+                csc206cars.vehicletypes vtn
+            ON
+                v.vehicle_typeID = vtn.vehicle_typeID
+            LEFT JOIN
+                csc206cars.purchasetransactions pt
+            ON
+                v.vehicleID = pt.vehicleID
+            LEFT JOIN
+                (
+                    SELECT
+                        po.vehicleID,
+                        SUM(p.cost) AS total_cost
+                    FROM
+                        csc206cars.partorders po
+                    INNER JOIN
+                        csc206cars.parts p
+                    ON
+                        po.part_orderID = p.part_orderID
+                    GROUP BY
+                        po.vehicleID
+                ) AS vpc
+            ON
+                v.vehicleID = vpc.vehicleID
+            LEFT JOIN
+                (
+                    SELECT
+                        vc.vehicleID,
+                        GROUP_CONCAT(c.color_name ORDER BY c.color_name ASC SEPARATOR ', ') AS concatenated_colors
+                    FROM
+                        csc206cars.vehiclecolors vc
+                    INNER JOIN
+                        csc206cars.colors c
+                    ON
+                        vc.colorID = c.colorID
+                    GROUP BY
+                        vc.vehicleID
+                ) AS vcl
+            ON
+                v.vehicleID = vcl.vehicleID
+        '''
+
+        where_conditions = [
+            "v.vehicleID NOT IN (SELECT vehicleID FROM csc206cars.salestransactions)"
+        ]
+
+        if filters:
+            if 'manID' in filters:
+                where_conditions.append(f"v.manufacturerID = {filters['manID']}")
+
+            if 'vehicletypeID' in filters:
+                where_conditions.append(f"v.vehicle_typeID = {filters['vehicletypeID']}")
+
+            if 'modelname' in filters:
+                where_conditions.append(f"v.model_name = '{filters['modelname']}'")
+
+            if 'model_year' in filters:
+                where_conditions.append(f"v.model_year = {filters['model_year']}")
+
+            if 'fueltype' in filters:
+                where_conditions.append(f"v.fuel_type = '{filters['fueltype']}'")
+
+            color_condition = None
+            if 'colorid' in filters:
+                color_condition = f"vc.colorID = {filters['colorid']}"
+            elif 'colorname' in filters:
+                color_condition = f"c.color_name = '{filters['colorname']}'"
+
+            if color_condition:
+                color_exists_clause = f'''
+                EXISTS (
+                    SELECT 1
+                    FROM csc206cars.vehiclecolors vc
+                    INNER JOIN csc206cars.colors c ON vc.colorID = c.colorID
+                    WHERE vc.vehicleID = v.vehicleID AND {color_condition}
+                )
+                '''
+                where_conditions.append(color_exists_clause)
+
+        where_clause = "WHERE\n" + "\nAND ".join(where_conditions)
+
+        sql = f'''
+            {sql_base}
+            {where_clause}
+            ORDER BY
+                v.model_name DESC,
+                m.manufacturer_name ASC
+        '''
+        return sql
+
     # Get a single vehicle by its ID using LIMIT
     def vehicle_details(self, vehicle_id):
         sql = f'''
@@ -274,6 +385,8 @@ class vehicleSQL():
                 vtn.vehicle_type_name,
                 m.manufacturer_name,
                 pt.purchase_price AS purchase_price,
+                pt.purchase_date AS purchase_date,
+                pt.vehicle_condition AS vehicle_condition,
                 vpc.total_cost AS total_cost
             FROM
                 csc206cars.vehicles v
@@ -359,7 +472,7 @@ class vehicleSQL():
         '''
         return sql
 
-    # Returns seller (purchase) and buyer (sales) customer information for a vehicle
+    # Gets buyer and seller information for a specific vehicle ID
     def transaction_customers(self, vehicle_id):
         sql = f'''
             SELECT
@@ -495,6 +608,7 @@ class vehicleSQL():
     # Query returns information from the users table
     def users(self):
         sql = '''SELECT
+                    userID,
                     username,
                     password,
                     role,
@@ -507,4 +621,19 @@ class vehicleSQL():
         return sql
 
 
+    # Returns list of customers 
+    def customers(self):
+        sql = '''SELECT
+                    customerID,
+                    first_name,
+                    last_name
+                FROM
+                    csc206cars.customers
+                ORDER BY
+                    last_name ASC,
+                    first_name ASC;
+            '''
+        return sql
+
     
+

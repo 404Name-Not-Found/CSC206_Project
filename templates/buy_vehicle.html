@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% block title %}Buy Vehicle{% endblock %}
+
+{% block body %}
+<section class="section">
+  <div class="container">
+    <h1 class="title is-4">Buy Vehicle</h1>
+
+    <div class="box">
+      {% if car %}
+        <strong class="title">{{ car.model_year }} {{ car.manufacturer_name }}</strong><br><br>
+        <p>
+          <strong>VIN: </strong> {{ car.vin }}<br>
+          <strong>Vehicle Type: </strong> {{ car.vehicle_type_name }}<br>
+          <strong>Model Year: </strong> {{ car.model_year }}<br>
+          <strong>Manufacturer: </strong> {{ car.manufacturer_name }}<br>
+          <strong>Model: </strong> {{ car.model_name }}<br>
+          {% if car.concatenated_colors %}
+            <strong>Color(s): </strong>{{ car.concatenated_colors }}<br>
+          {% endif %}
+          <strong>Price: </strong> ${{ ((1.4 * (car.purchase_price|default(0)|float)) + (1.2 * (car.total_cost|default(0)|float))) | round(2) }}<br>
+          <strong>Description: </strong> {{ car.description}}<br>
+        </p>
+      {% else %}
+        <p class="has-text-danger">Vehicle details unavailable.</p>
+      {% endif %}
+
+      <hr>
+
+      <div class="columns">
+        <div class="column">
+          <p><strong>Customer ID:</strong> {{ customer_id }}</p>
+          <p><strong>Salesperson ID:</strong> {{ salesperson_id or 'N/A' }}</p>
+          <p><strong>Salesperson:</strong> {{ salesperson_name or 'N/A' }}</p>
+        </div>
+      </div>
+
+      <form method="post" action="#">
+        <div class="columns">
+          <div class="column">
+            <div class="field">
+              <label class="label">Purchase Date</label>
+              <div class="control">
+                <p>{{ car.purchase_date or 'N/A' }}</p>
+              </div>
+            </div>
+            <div class="field">
+              <label class="label">Purchase Price</label>
+              <div class="control">
+                <p>${{ (car.purchase_price | default(0) | float) | round(2) }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Vehicle condition shown below purchase date and price -->
+        <div class="field">
+          <label class="label">Vehicle Condition:</label>
+          <div class="control">
+            <p>{{ car.vehicle_condition or 'N/A' }}</p>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+{% endblock %}

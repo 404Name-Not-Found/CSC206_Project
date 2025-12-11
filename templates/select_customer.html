@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% block title %}Select Customer{% endblock %}
+
+{% block body %}
+<section class="section">
+  <div class="container">
+
+    <!-- Displays if you are buying or selling-->
+    <h1 class="title is-4">{{ action|capitalize }} Vehicle</h1>
+    
+
+    <div class="box">
+      <form method="post" action="{{ url_for('select_customer', vehicle_id=vehicle_id, action=action) }}">
+        <div class="field">
+          <label class="label">Select Customer</label>
+          <div class="control">
+            <div class="select is-fullwidth">
+              <select name="customerID" required>
+
+                <!-- For selecting the newly created customer if there is one-->
+                {% if not selected_customer_id %}
+                  <option value="" disabled selected>Choose a customer</option>
+                {% else %}
+                  <option value="" disabled>Choose a customer</option>
+                {% endif %}
+                {% for c in customers %}
+                  <option value="{{ c.customerID }}" {% if selected_customer_id and c.customerID == selected_customer_id %}selected{% endif %}>{{ c.first_name }} {{ c.last_name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="field is-grouped">
+          <div class="control">
+            <button type="submit" class="button is-primary">Continue</button>
+          </div>
+        </div>
+
+        <div class="my-3">OR</div>
+
+        <div class="field is-grouped">
+          <div class="control">
+            <a class="button is-link is-light" href="{{ url_for('create_customer', vehicle_id=vehicle_id, action=action) }}">Add New Customer</a>
+          </div>
+        </div>
+
+        
+      </form>
+    </div>
+  </div>
+</section>
+{% endblock %}

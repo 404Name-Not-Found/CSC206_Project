@@ -28,6 +28,7 @@ def sql_queries():
         'fuel_types': vSQL.vehicle_fuel_type(),
         'colors': vSQL.colors(),
         'users': vSQL.users(),
+        'customers': vSQL.customers(),
     }
 
     # Dictionary for car queries
@@ -85,8 +86,11 @@ def home():
 
     car_query = sql_queries()
 
-    # Calls the (scary) sellable vehicles query and passes the filters dictionary as the parameter
-    output = db.query(qSQL.sellable_vehicles(filters if filters else None))
+    # For Buyers, show all unsold vehicles otherwise see sellable vehicles
+    if session.get('role') == 'Buyer':
+        output = db.query(qSQL.unsold_vehicles(filters if filters else None))
+    else:
+        output = db.query(qSQL.sellable_vehicles(filters if filters else None))
 
     return render_template('display.html', cars=car_query, vehicles=output, include_filters=True, display_color=True)
 
@@ -155,7 +159,178 @@ def vehicle_details(vehicle_id):
                     'email_address': row.get('buyer_email_address')
                 }
 
-    return render_template('details.html', car=car, parts=parts, seller=seller, buyer=buyer)
+    # Determine sale eligibility; asked Gemini for help on this logic
+    sold = buyer is not None
+    all_parts_installed = True
+    for p in parts or []:
+        if p.get('status') != 'Installed':
+            all_parts_installed = False
+            break
+    eligible_for_sale = (not sold) and all_parts_installed
+
+    return render_template('details.html', car=car, parts=parts, seller=seller, buyer=buyer, eligible_for_sale=eligible_for_sale)
+
+# Page to select a customer with dynamic routing for buy or sell
+@app.route('/select_customer/<int:vehicle_id>/<action>', methods=['GET', 'POST'])
+def select_customer(vehicle_id, action):
+
+    vSQL = cars.vehicleSQL()
+    customers = db.query(vSQL.customers())
+
+    # This is to display the a newly created customer(with help from Gemini ofc)
+    selected_customer_id = request.args.get('selected_customer_id', default=None, type=int)
+
+    # If posting back, redirect to buy or sell page with selected customer
+    if request.method == 'POST':
+        cust_id = request.form.get('customerID', type=int)
+        if not cust_id:
+            flash('Please select a customer to continue.')
+        else:
+            if action == 'sell':
+                # For selling, the sell page itself collects customer and date
+                return redirect(url_for('sell_vehicle', vehicle_id=vehicle_id))
+            else:
+                return redirect(url_for('buy_vehicle', customer_id=cust_id, vehicle_id=vehicle_id))
+
+    return render_template('select_customer.html', customers=customers, vehicle_id=vehicle_id, action=action, selected_customer_id=selected_customer_id)
+
+
+# Buy vehicle page
+@app.route('/buy_vehicle/<int:customer_id>/<int:vehicle_id>', methods=['GET'])
+def buy_vehicle(customer_id, vehicle_id):
+    salesperson_name = None
+    salesperson_id = None
+
+    # Get the salesperson name 
+    if session.get('first_name') and session.get('last_name'):
+        salesperson_name = f"{session.get('first_name')} {session.get('last_name')}"
+
+    # Get the userID
+    try:
+        cur = db.mysql.connection.cursor()
+        cur.execute("SELECT userID FROM csc206cars.salestransactions WHERE vehicleID = %s LIMIT 1", (vehicle_id,))
+        row = cur.fetchone()
+        if row:
+            salesperson_id = row[0]
+        cur.close()
+    except Exception:
+        salesperson_id = None
+
+    # Get vehicle details 
+    qSQL = cars.vehicleSQL()
+    output = db.query(qSQL.vehicle_details(vehicle_id))
+    car = output[0] if output else None
+
+    return render_template('buy_vehicle.html',
+        customer_id=customer_id,
+        vehicle_id=vehicle_id,
+        salesperson_name=salesperson_name,
+        salesperson_id=salesperson_id,
+        car=car,
+    )
+
+
+# Sell vehicle page
+@app.route('/sell_vehicle/<int:vehicle_id>', methods=['GET', 'POST'])
+def sell_vehicle(vehicle_id):
+
+    
+    qSQL = cars.vehicleSQL()
+    customers = db.query(qSQL.customers())
+
+    # Get the customer & sale date
+    if request.method == 'POST':
+        cust_id = request.form.get('customerID', type=int)
+        sale_date = request.form.get('sale_date')
+        if not cust_id or not sale_date:
+            flash('Please select a customer and enter a sale date.')
+        else:
+            flash('Sale details captured. Completing sale coming soon.')
+            return redirect(url_for('vehicle_details', vehicle_id=vehicle_id))
+
+    return render_template('sell_vehicle.html', customers=customers, vehicle_id=vehicle_id)
+
+
+    
+# Create a new customer(This format is based on asking Gemini for how to do this)
+@app.route('/create_customer', methods=['GET', 'POST'])
+def create_customer():
+
+    vehicle_id = request.args.get('vehicle_id', default=0, type=int)
+    action = request.args.get('action', default='buy')
+
+    if request.method == 'POST':
+
+        # Required fields
+        first_name = request.form.get('first_name')
+        last_name = request.form.get('last_name')
+        id_number = request.form.get('id_number')
+        phone_number = request.form.get('phone_number')
+
+        # Address fields
+        street = request.form.get('street')
+        city = request.form.get('city')
+        state = request.form.get('state')
+        postal_code = request.form.get('postal_code')
+
+        # Optional fields
+        email_address = request.form.get('email_address') or None
+        business_name = request.form.get('business_name') or None
+
+
+        # Basic validation for required fields
+        missing = []
+        for key, val in {
+            'First Name': first_name,
+            'Last Name': last_name,
+            'ID Number': id_number,
+            'Phone Number': phone_number,
+            'Street': street,
+            'City': city,
+            'State': state,
+            'Postal Code': postal_code,
+        }.items():
+            if not val:
+                missing.append(key)
+
+
+        if missing:
+            flash(f"Missing required fields: {', '.join(missing)}")
+            return render_template('create_customer.html', vehicle_id=vehicle_id, action=action)
+
+        # Insert into database
+        try:
+            cur = db.mysql.connection.cursor()
+
+            insert_sql = (
+                "INSERT INTO csc206cars.customers "
+                "(first_name, last_name, id_number, phone_number, email_address, street, city, state, postal_code, business_name) "
+                "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+            )
+            cur.execute(insert_sql, (
+                first_name,
+                last_name,
+                id_number,
+                phone_number,
+                email_address,
+                street,
+                city,
+                state,
+                postal_code,
+                business_name,
+            ))
+            db.mysql.connection.commit()
+            # Get the newly inserted customer's id
+            new_customer_id = cur.lastrowid
+            cur.close()
+            flash('Customer created successfully.')
+            # Redirect back to select page with the newly created customer pre-selected
+            return redirect(url_for('select_customer', vehicle_id=vehicle_id, action=action, selected_customer_id=new_customer_id))
+        except Exception as e:
+            flash(f'Error creating customer: {e}')
+            return render_template('create_customer.html', vehicle_id=vehicle_id, action=action)
+        
+    return render_template('create_customer.html', vehicle_id=vehicle_id, action=action)
 
 # Route to display all vehicles
 @app.route('/all_vehicles')
